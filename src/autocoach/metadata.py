@@ -36,6 +36,7 @@ class SessionMetadata(BaseModel):
     custom_instructions: Optional[str] = None
     prompt_override: Optional[str] = None
     compliance_traps: list[str] = Field(default_factory=list)
+    evaluation_rubric: Optional[Any] = None
 
     # AutoCoach Trainee & LMS Tracking
     trainee_id: Optional[str] = None

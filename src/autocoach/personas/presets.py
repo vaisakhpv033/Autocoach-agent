@@ -1,6 +1,6 @@
-"""Persona registry and built-in default scenarios for AutoCoach."""
+"""Persona registry and built-in preset scenarios for AutoCoach."""
 
-from typing import Optional
+from typing import Any, Optional
 from autocoach.personas.base import CustomerPersona
 
 # General Fallback Persona used when no specific scenario or custom instructions are given
@@ -73,11 +73,30 @@ PERSONA_REGISTRY: dict[str, CustomerPersona] = {
     "general": DEFAULT_PERSONA,
 }
 
+# Registry of optional built-in evaluation rubrics
+RUBRIC_REGISTRY: dict[str, dict[str, Any]] = {}
 
-def register_persona(persona: CustomerPersona) -> None:
-    """Registers a new persona into the runtime registry."""
-    PERSONA_REGISTRY[persona.id.lower()] = persona
-    PERSONA_REGISTRY[persona.scenario.lower()] = persona
+
+def register_persona(
+    persona: CustomerPersona,
+    alias: Optional[str] = None,
+    rubric: Optional[dict[str, Any]] = None,
+) -> None:
+    """Registers a new persona and optional evaluation rubric into the runtime registry."""
+    clean_id = persona.id.lower()
+    clean_scenario = persona.scenario.lower()
+    PERSONA_REGISTRY[clean_id] = persona
+    PERSONA_REGISTRY[clean_scenario] = persona
+
+    if alias:
+        clean_alias = alias.lower()
+        PERSONA_REGISTRY[clean_alias] = persona
+        if rubric:
+            RUBRIC_REGISTRY[clean_alias] = rubric
+
+    if rubric:
+        RUBRIC_REGISTRY[clean_id] = rubric
+        RUBRIC_REGISTRY[clean_scenario] = rubric
 
 
 def get_preset_persona(scenario_name: Optional[str]) -> CustomerPersona:
@@ -86,3 +105,27 @@ def get_preset_persona(scenario_name: Optional[str]) -> CustomerPersona:
         return DEFAULT_PERSONA
     clean = scenario_name.strip().lower()
     return PERSONA_REGISTRY.get(clean, DEFAULT_PERSONA)
+
+
+def get_preset_rubric(scenario_name: Optional[str]) -> Optional[dict[str, Any]]:
+    """Retrieves an optional evaluation rubric for a preset scenario, or None if not registered."""
+    if not scenario_name:
+        return None
+    clean = scenario_name.strip().lower()
+    return RUBRIC_REGISTRY.get(clean)
+
+
+# Lazy registration of built-in dental personas & rubrics
+def _init_dental_presets() -> None:
+    try:
+        from autocoach.personas.dental.scenarios import ALL_DENTAL_PERSONAS
+        from autocoach.personas.dental.rubrics import DENTAL_RUBRIC_REGISTRY
+
+        for key, persona in ALL_DENTAL_PERSONAS.items():
+            rubric = DENTAL_RUBRIC_REGISTRY.get(key)
+            register_persona(persona, alias=key, rubric=rubric)
+    except ImportError:
+        pass
+
+
+_init_dental_presets()

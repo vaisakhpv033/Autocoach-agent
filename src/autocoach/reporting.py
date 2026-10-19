@@ -58,6 +58,15 @@ async def send_session_report(
     room_name = ctx.room.name if ctx.room else (lk_report.room if lk_report else "unknown")
     job_id = ctx.job.id if ctx.job else (lk_report.job_id if lk_report else "unknown")
 
+    # Resolve optional evaluation rubric (metadata override or preset scenario rubric)
+    rubric = meta.evaluation_rubric
+    if rubric is None:
+        try:
+            from autocoach.personas.presets import get_preset_rubric
+            rubric = get_preset_rubric(meta.scenario)
+        except ImportError:
+            rubric = None
+
     # Structured Enterprise Evaluation Payload
     payload: dict[str, Any] = {
         "job_id": job_id,
@@ -78,6 +87,7 @@ async def send_session_report(
             "language": meta.language,
             "compliance_traps": meta.compliance_traps,
         },
+        "evaluation_rubric": rubric,
         "termination": {
             "reason": termination_reason,
             "timestamp": ended_at.isoformat().replace("+00:00", "Z"),
