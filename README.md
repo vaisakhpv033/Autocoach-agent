@@ -141,21 +141,42 @@ curl http://localhost:8081/
 
 ---
 
+## Built-in Dental Training Scenarios
+
+AutoCoach includes comprehensive, out-of-the-box dental front desk & patient coordinator training presets derived directly from clinic Standard Operating Procedures (SOPs):
+
+| Scenario Key | Description | Key Challenges & Objectives Tested |
+| :--- | :--- | :--- |
+| `dental_scheduling` *(Default)* | All-rounder new patient scheduling | Exam + cleaning, existing X-ray policy (6 months, 48 hrs prior), $1 reservation hold. |
+| `dental_price_shopper` | Inquiring about root canal & crown pricing | Prohibits phone price quotes without exam; explains swelling/abscess; explains prepayment policy. |
+| `dental_frontdesk_compliance` | Caller demanding to speak with doctor | Prohibits putting caller on hold; explains doctor is with a patient; addresses $85 balance due. |
+| `dental_clinical_objections` | Direct treatment & external X-rays | Enforces doctor's independent exam before treatment; explains 6-month validity for external X-rays. |
+| `dental_emergency_triage` | Acute toothache trying to delay | Creates urgency (infections flare up on weekends); advises caller not to chew on affected side. |
+| `dental_insurance_copay` | Perio maintenance vs routine cleaning copay | Explains clinical difference between prophylaxis (healthy gums) and perio maintenance (active infection). |
+
+### Optional Dual-Sided Evaluation Rubrics
+- **Zero Token Overhead**: Built-in rubrics are local data structures and are **never sent to Gemini 3.8 Live** during the call, consuming zero live tokens.
+- **Post-Call Verification**: The session evaluation report automatically includes the scenario's SOP rubric (or custom rubric from metadata) so automated LLM evaluators or supervisors can immediately grade the call transcript.
+
+---
+
 ## Dynamic Metadata API
 
 When creating a room or dispatching a job, you can pass custom metadata as a JSON string to dynamically tailor the simulated customer without changing any code:
 
 ```json
 {
-  "scenario": "general_support",
-  "name": "Sarah Jenkins",
+  "scenario": "dental_price_shopper",
+  "name": "Michael Reynolds",
   "difficulty": "hard",
-  "voice": "Aoede",
+  "voice": "Charon",
   "language": "en",
-  "custom_instructions": "Challenge the trainee on refund eligibility. If the trainee displays active listening and quotes the standard 30-day window, agree to the terms.",
+  "custom_instructions": "Ask if the doctor can prescribe painkillers over the phone. If the trainee refuses politely, accept.",
   "compliance_traps": [
-    "Ask the trainee to process the refund without providing an order number"
+    "Refuse to provide a card for the $1 hold and ask if you can pay cash upon arrival"
   ],
   "reports_webhook_url": "https://your-lms.com/api/evaluations/webhook"
 }
 ```
+
+
