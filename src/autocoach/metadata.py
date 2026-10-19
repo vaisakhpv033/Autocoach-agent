@@ -31,6 +31,7 @@ class SessionMetadata(BaseModel):
     # Audio & Voice
     voice: Optional[str] = None
     language: str = Field(default_factory=lambda: settings.default_language)
+    code_mixing: bool = False
 
     # Custom Prompts & Dynamic Injection
     custom_instructions: Optional[str] = None
@@ -116,6 +117,14 @@ def extract_session_metadata(ctx: JobContext) -> SessionMetadata:
 
     if "system_prompt" in merged_data and "prompt_override" not in merged_data:
         merged_data["prompt_override"] = merged_data["system_prompt"]
+
+    # Normalize Spanglish and Code-Mixing settings
+    raw_lang = str(merged_data.get("language", "")).strip().lower()
+    if raw_lang in ["spanglish", "code-mix", "code_mix", "code-mixed", "es-en", "en-es"]:
+        merged_data["code_mixing"] = True
+        merged_data["language"] = "es-US"
+    elif merged_data.get("code_mixing") in [True, "true", "True", "1", 1]:
+        merged_data["code_mixing"] = True
 
     # Separate known fields from extra_metadata
     known_fields = SessionMetadata.model_fields.keys()

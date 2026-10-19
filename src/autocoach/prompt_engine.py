@@ -134,6 +134,29 @@ The supervisor or LMS module has injected the following specific instructions fo
 """
 
 
+def _build_language_rules(meta: SessionMetadata) -> str:
+    """Builds specific language constraints and bilingual code-mixing directives."""
+    if meta.code_mixing:
+        return """## LANGUAGE & CONVERSATIONAL CONSTRAINTS — SPANGLISH / CODE-MIXING
+- You are a bilingual US caller who naturally code-switches between conversational American English and Spanish (Spanglish).
+- Naturally blend phrases and words from both languages during the conversation (e.g., "Hola, good morning... I wanted to ask about scheduling an appointment pero my insurance is maxed out", or "Me duele mucho la muela, can the doctor see me today?").
+- If the representative states they do not speak Spanish (using clinic protocol: "Lo siento muchísimo. Yo no hablo español..."), test if they offer to transfer you or arrange a callback with a Spanish-speaking staff member.
+"""
+
+    lang_lower = (meta.language or "en").strip().lower()
+    if lang_lower.startswith("es") or lang_lower in ["spanish", "es-us", "es-mx", "es-es"]:
+        return """## LANGUAGE & CONVERSATIONAL CONSTRAINTS — PURE US SPANISH
+- You are a Spanish-speaking caller in the US. You speak ENTIRELY in conversational Latin American / US Spanish.
+- Greet and conduct the entire call in Spanish (e.g., "Hola, buenos días... necesito hacer una cita con el doctor porque tengo mucho dolor en una muela").
+- You have very limited English proficiency. If the representative speaks only in English, ask if someone there speaks Spanish ("¿Alguien habla español?").
+- This directly tests whether the trainee follows clinic protocol: apologizing in Spanish ("Lo siento muchísimo. Yo no hablo español") and transferring the call or arranging a callback with a Spanish-speaking staff member.
+"""
+
+    return """## LANGUAGE & CONVERSATIONAL CONSTRAINTS — AMERICAN ENGLISH
+- You speak standard conversational American English.
+"""
+
+
 def build_system_prompt(meta: SessionMetadata) -> str:
     """Assembles the complete 5-layer prompt for Gemini 3.8 Live.
     
@@ -156,12 +179,15 @@ CRITICAL SPOKEN VOICE RULES:
     persona = get_preset_persona(meta.scenario)
 
     layer1 = _build_layer1_core_directives()
+    layer_lang = _build_language_rules(meta)
     layer2 = _build_layer2_persona(persona, meta)
     layer3 = _build_layer3_difficulty_and_behavior(persona, meta.difficulty)
     layer4 = _build_layer4_compliance_and_objectives(persona, meta)
     layer5 = _build_layer5_injected_instructions(meta)
 
     prompt = f"""{layer1}
+---
+{layer_lang}
 ---
 {layer2}
 ---
