@@ -160,6 +160,41 @@ AutoCoach includes comprehensive, out-of-the-box dental front desk & patient coo
 
 ---
 
+## Language Modes (English, Spanish & Spanglish)
+
+AutoCoach supports 3 primary language modes configured dynamically via metadata:
+
+1. **Pure US English (`"language": "en-US"`)**:
+   Standard American English dialogue.
+   ```json
+   {
+     "language": "en-US",
+     "scenario": "dental_scheduling"
+   }
+   ```
+
+2. **Pure US Spanish (`"language": "es-US"` or `"spanish"`)**:
+   The caller speaks entirely in Spanish, directly testing the clinic's Spanish caller SOP:
+   ```json
+   {
+     "language": "es-US",
+     "scenario": "dental_frontdesk_compliance"
+   }
+   ```
+   *Expected Trainee SOP Response*: *"Lo siento muchísimo. Yo no hablo español. Please hold, let me transfer your call..."*
+
+3. **Spanglish / Code-Mixing (`"language": "spanglish"` or `"code_mixing": true`)**:
+   The caller naturally code-switches between US Spanish and American English, mimicking real-world bilingual patients:
+   ```json
+   {
+     "language": "spanglish",
+     "scenario": "dental_price_shopper"
+   }
+   ```
+   *(Or alternatively: `{"language": "es-US", "code_mixing": true}`)*
+
+---
+
 ## Dynamic Metadata API
 
 When creating a room or dispatching a job, you can pass custom metadata as a JSON string to dynamically tailor the simulated customer without changing any code:
@@ -170,7 +205,7 @@ When creating a room or dispatching a job, you can pass custom metadata as a JSO
   "name": "Michael Reynolds",
   "difficulty": "hard",
   "voice": "Charon",
-  "language": "en",
+  "language": "spanglish",
   "custom_instructions": "Ask if the doctor can prescribe painkillers over the phone. If the trainee refuses politely, accept.",
   "compliance_traps": [
     "Refuse to provide a card for the $1 hold and ask if you can pay cash upon arrival"
@@ -178,5 +213,6 @@ When creating a room or dispatching a job, you can pass custom metadata as a JSO
   "reports_webhook_url": "https://your-lms.com/api/evaluations/webhook"
 }
 ```
+
 
 
