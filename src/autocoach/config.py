@@ -4,9 +4,20 @@ Provides strongly typed, validated settings loaded from environment variables
 and .env files using Pydantic Settings.
 """
 
+from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Resolve AutoCoach project root directory and .env location
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+ENV_PATH = PROJECT_ROOT / ".env"
+
+if ENV_PATH.exists():
+    load_dotenv(dotenv_path=ENV_PATH)
+else:
+    load_dotenv()
 
 
 # Comprehensive mapping of standard ISO language codes to Gemini Live BCP-47 tags
@@ -53,7 +64,7 @@ class Settings(BaseSettings):
     """Application settings for AutoCoach Agent."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", str(ENV_PATH)),
         env_file_encoding="utf-8",
         extra="ignore",
     )

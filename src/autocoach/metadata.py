@@ -53,7 +53,7 @@ class SessionMetadata(BaseModel):
 
 def _safe_parse_json(raw: Any) -> dict[str, Any]:
     """Safely converts string, dict, or None into a Python dictionary."""
-    if not raw:
+    if not raw or not isinstance(raw, (str, dict)):
         return {}
     if isinstance(raw, dict):
         return raw
@@ -81,29 +81,31 @@ def extract_session_metadata(ctx: JobContext) -> SessionMetadata:
     merged_data: dict[str, Any] = {}
 
     # 1. Job Dispatch metadata (Base)
-    if ctx.job and ctx.job.metadata:
+    if ctx.job and getattr(ctx.job, "metadata", None):
         job_data = _safe_parse_json(ctx.job.metadata)
         merged_data.update(job_data)
 
     # 2. Room metadata (Overrides job metadata if set)
-    if ctx.room and ctx.room.metadata:
+    if ctx.room and getattr(ctx.room, "metadata", None):
         room_data = _safe_parse_json(ctx.room.metadata)
         merged_data.update(room_data)
 
     # 3. Remote Participant attributes / metadata (Highest priority)
     # Check remote participants in the room
-    if ctx.room and ctx.room.remote_participants:
+    if ctx.room and getattr(ctx.room, "remote_participants", None):
         for participant in ctx.room.remote_participants.values():
-            if participant.attributes:
+            if isinstance(getattr(participant, "attributes", None), dict):
                 merged_data.update(participant.attributes)
-            if participant.metadata:
+            if getattr(participant, "metadata", None):
                 participant_data = _safe_parse_json(participant.metadata)
                 merged_data.update(participant_data)
             # Use participant identity as fallback trainee_id if not present
-            if "trainee_id" not in merged_data and participant.identity:
-                merged_data["trainee_id"] = participant.identity
-            if "trainee_name" not in merged_data and participant.name:
-                merged_data["trainee_name"] = participant.name
+            p_identity = getattr(participant, "identity", None)
+            if "trainee_id" not in merged_data and isinstance(p_identity, str):
+                merged_data["trainee_id"] = p_identity
+            p_name = getattr(participant, "name", None)
+            if "trainee_name" not in merged_data and isinstance(p_name, str):
+                merged_data["trainee_name"] = p_name
 
     # Handle alias and synonym normalizations
     if "custom_gender" in merged_data and "gender" not in merged_data:
