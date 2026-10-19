@@ -124,19 +124,29 @@ uv run python -m autocoach.agent start
 
 ---
 
-## Self-Hosted Deployment
+## Production Deployment with Docker Compose
 
-### Using Docker Compose
-You can run both a local LiveKit Server and the AutoCoach Agent Worker together:
+When using **LiveKit Cloud**, you only need to run the **AutoCoach Agent Worker** container. The worker makes an outbound WebSocket connection to LiveKit Cloud, meaning **zero public inbound ports** or local SFU containers are required.
+
+### 1. Build and Run Container
+Ensure your [.env](file:///e:/Brocamp/After_brocamp/AutoCoach/AutoCoach/.env) contains your `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, and `GOOGLE_API_KEY`, then run:
 ```bash
-export GOOGLE_API_KEY="your-gemini-api-key"
 docker compose up --build -d
 ```
 
-### Health Check Endpoint
-The worker exposes an HTTP health check endpoint on port `8081`:
+### 2. View Logs
 ```bash
-curl http://localhost:8081/
+docker compose logs -f autocoach-agent
+```
+
+### 3. Health Check Probe
+The worker exposes an internal HTTP health check probe on port `8085` (bound to localhost `127.0.0.1:8085` to avoid port collisions):
+```bash
+curl http://127.0.0.1:8085/
+# Returns: OK
+
+curl http://127.0.0.1:8085/worker
+# Returns JSON worker metrics: active jobs, load, etc.
 ```
 
 ---

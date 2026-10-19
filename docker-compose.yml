@@ -1,46 +1,25 @@
-# AutoCoach Self-Hosted Deployment Stack
-# Runs the AutoCoach Agent Worker and optionally a local LiveKit Server
+# AutoCoach Agent Worker Deployment Stack
+# Connects outbound to LiveKit Cloud (no local SFU or inbound media ports required)
 
 services:
-  # Self-Hosted LiveKit Server (SFU)
-  livekit:
-    image: livekit/livekit-server:latest
-    container_name: autocoach-livekit
-    restart: unless-stopped
-    command: --dev
-    ports:
-      - "7880:7880"         # HTTP / WebSocket API
-      - "7881:7881"         # WebRTC TCP
-      - "7882:7882/udp"     # WebRTC UDP
-    environment:
-      - LIVEKIT_KEYS=devkey: secret
-
-  # AutoCoach Agent Worker
   autocoach-agent:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: autocoach-worker
     restart: unless-stopped
-    depends_on:
-      - livekit
+    env_file:
+      - .env
     environment:
-      - LIVEKIT_URL=ws://livekit:7880
-      - LIVEKIT_API_KEY=devkey
-      - LIVEKIT_API_SECRET=secret
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - GEMINI_MODEL=gemini-3.8-live
-      - AGENT_NAME=autocoach-customer-sts
+      - PYTHONUNBUFFERED=1
       - HEALTH_CHECK_HOST=0.0.0.0
-      - HEALTH_CHECK_PORT=8081
-      - SHUTDOWN_TIMEOUT_SECONDS=60.0
-      - WORKER_LOAD_THRESHOLD=0.7
-      - AUTOCOACH_REPORTS_URL=${AUTOCOACH_REPORTS_URL:-}
+      - HEALTH_CHECK_PORT=${HEALTH_CHECK_PORT:-8085}
     ports:
-      - "8081:8081"         # Health check probe endpoint
+      # Bound to localhost on port 8085 to avoid conflicts with ports 8081-8083 on the host
+      - "127.0.0.1:${HEALTH_CHECK_PORT:-8085}:${HEALTH_CHECK_PORT:-8085}"
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8081/').read()\" || exit 1"]
-      interval: 15s
+      test: ["CMD-SHELL", "python -c \"import urllib.request, os; port = os.getenv('HEALTH_CHECK_PORT', '8085'); urllib.request.urlopen(f'http://127.0.0.1:{port}/').read()\" || exit 1"]
+      interval: 20s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s

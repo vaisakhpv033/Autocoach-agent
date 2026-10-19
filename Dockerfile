@@ -48,8 +48,8 @@ WORKDIR /app
 # Copy built application and virtual environment with correct ownership
 COPY --from=build --chown=appuser:appuser /app /app
 
-# Health check probe on port 8081
-EXPOSE 8081
+# Health check probe on port 8085
+EXPOSE 8085
 
 # Switch to non-root user
 USER appuser

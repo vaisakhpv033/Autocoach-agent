@@ -82,7 +82,7 @@ class Settings(BaseSettings):
     # LiveKit Agent Worker & Server Lifecycle
     agent_name: str = Field(default="autocoach-customer-sts", alias="AGENT_NAME")
     health_check_host: str = Field(default="0.0.0.0", alias="HEALTH_CHECK_HOST")
-    health_check_port: int = Field(default=8081, alias="HEALTH_CHECK_PORT")
+    health_check_port: int = Field(default=8085, alias="HEALTH_CHECK_PORT")
     shutdown_timeout_seconds: float = Field(default=60.0, alias="SHUTDOWN_TIMEOUT_SECONDS")
     worker_load_threshold: float = Field(default=0.7, alias="WORKER_LOAD_THRESHOLD")
 
