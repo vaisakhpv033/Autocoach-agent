@@ -18,18 +18,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy dependency specifications first to leverage Docker layer caching
-COPY pyproject.toml uv.lock ./
-COPY src ./src
+# Copy dependency specifications and project readme to leverage Docker layer caching
+COPY pyproject.toml uv.lock README.md ./
 
-# Install dependencies deterministically
-RUN uv sync --locked
+# Install dependencies deterministically (without installing the project itself yet)
+RUN uv sync --locked --no-install-project
 
 # Copy remaining source files
 COPY . .
 
-# Pre-compile bytecode
-RUN uv run python -c "import autocoach"
+# Install the project and pre-compile bytecode
+RUN uv sync --locked && uv run python -c "import autocoach"
 
 # --- Production Stage ---
 FROM base
