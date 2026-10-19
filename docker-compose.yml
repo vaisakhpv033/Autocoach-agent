@@ -1,0 +1,46 @@
+# AutoCoach Self-Hosted Deployment Stack
+# Runs the AutoCoach Agent Worker and optionally a local LiveKit Server
+
+services:
+  # Self-Hosted LiveKit Server (SFU)
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: autocoach-livekit
+    restart: unless-stopped
+    command: --dev
+    ports:
+      - "7880:7880"         # HTTP / WebSocket API
+      - "7881:7881"         # WebRTC TCP
+      - "7882:7882/udp"     # WebRTC UDP
+    environment:
+      - LIVEKIT_KEYS=devkey: secret
+
+  # AutoCoach Agent Worker
+  autocoach-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: autocoach-worker
+    restart: unless-stopped
+    depends_on:
+      - livekit
+    environment:
+      - LIVEKIT_URL=ws://livekit:7880
+      - LIVEKIT_API_KEY=devkey
+      - LIVEKIT_API_SECRET=secret
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GEMINI_MODEL=gemini-3.8-live
+      - AGENT_NAME=autocoach-customer-sts
+      - HEALTH_CHECK_HOST=0.0.0.0
+      - HEALTH_CHECK_PORT=8081
+      - SHUTDOWN_TIMEOUT_SECONDS=60.0
+      - WORKER_LOAD_THRESHOLD=0.7
+      - AUTOCOACH_REPORTS_URL=${AUTOCOACH_REPORTS_URL:-}
+    ports:
+      - "8081:8081"         # Health check probe endpoint
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8081/').read()\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
