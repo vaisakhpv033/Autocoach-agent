@@ -7,7 +7,8 @@ Google Gemini 3.8 Live for simulated customer coaching and representative traini
 import logging
 import os
 from livekit import agents
-from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
+from livekit.agents import Agent, AgentServer, AgentSession, JobContext, TurnHandlingOptions, cli
+from livekit.agents.voice.turn import InterruptionOptions
 from livekit.plugins import google
 from google.genai import types
 
@@ -112,8 +113,10 @@ async def entrypoint(ctx: JobContext):
         api_key=gemini_api_key,
         modalities=[types.Modality.AUDIO],
         language=bcp47_language,
+        context_window_compression=types.ContextWindowCompressionConfig(),
         input_audio_transcription=types.AudioTranscriptionConfig(
             language_codes=asr_language_codes,
+            custom_vocabulary=settings.dental_custom_vocabulary,
         ),
         output_audio_transcription=types.AudioTranscriptionConfig(
             language_codes=asr_language_codes,
@@ -121,13 +124,25 @@ async def entrypoint(ctx: JobContext):
         realtime_input_config=types.RealtimeInputConfig(
             automatic_activity_detection=types.AutomaticActivityDetection(
                 disabled=False,
-                silence_duration_ms=800,
+                silence_duration_ms=settings.silence_duration_ms,
             )
         ),
     )
 
-    # 8. Start AgentSession
-    session = AgentSession(llm=llm)
+    # 8. Start AgentSession with modern turn handling & false-interruption recovery
+    turn_handling = TurnHandlingOptions(
+        interruption=InterruptionOptions(
+            enabled=settings.allow_interruptions,
+            resume_false_interruption=settings.resume_false_interruption,
+            min_duration=settings.min_interruption_duration,
+            min_words=settings.min_interruption_words,
+        )
+    )
+
+    session = AgentSession(
+        llm=llm,
+        turn_handling=turn_handling,
+    )
 
     await session.start(
         agent=simulated_customer,

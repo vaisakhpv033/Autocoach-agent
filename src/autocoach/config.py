@@ -79,6 +79,25 @@ class Settings(BaseSettings):
     gemini_model: str = Field(default="gemini-3.8-live", alias="GEMINI_MODEL")
     gemini_temperature: float = Field(default=0.8, alias="GEMINI_TEMPERATURE")
 
+    # Speech Dynamics & VAD Tuning (Gemini 3.8 Live & LiveKit 1.8+)
+    silence_duration_ms: int = Field(default=600, alias="SILENCE_DURATION_MS")
+    allow_interruptions: bool = Field(default=True, alias="ALLOW_INTERRUPTIONS")
+    resume_false_interruption: bool = Field(default=True, alias="RESUME_FALSE_INTERRUPTION")
+    min_interruption_duration: float = Field(default=0.5, alias="MIN_INTERRUPTION_DURATION")
+    min_interruption_words: int = Field(default=2, alias="MIN_INTERRUPTION_WORDS")
+
+    # Domain Biasing - Specialized Dental & Insurance Terminology for ASR
+    dental_custom_vocabulary: list[str] = Field(
+        default_factory=lambda: [
+            "root canal", "crown", "composite", "implant", "prophy",
+            "prophylaxis", "periodontal", "extraction", "caries", "gingivitis",
+            "copay", "deductible", "Open Dental", "Delta Dental", "Citrus Smiles", "MetLife",
+            "Guardian", "Aetna", "Cigna", "PPO", "HMO", "pre-authorization",
+            "scaling and root planing", "fluoride", "bitewing", "panoramic"
+        ],
+        alias="DENTAL_CUSTOM_VOCABULARY",
+    )
+
     # LiveKit Agent Worker & Server Lifecycle
     agent_name: str = Field(default="autocoach-customer-sts", alias="AGENT_NAME")
     health_check_host: str = Field(default="0.0.0.0", alias="HEALTH_CHECK_HOST")
