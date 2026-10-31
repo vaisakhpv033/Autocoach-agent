@@ -40,3 +40,4 @@ def test_is_safe_webhook_url_blocks_invalid_schemes():
     assert is_safe_webhook_url("ftp://example.com/file") is False
     assert is_safe_webhook_url("") is False
     assert is_safe_webhook_url(None) is False
+

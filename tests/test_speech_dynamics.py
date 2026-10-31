@@ -59,6 +59,7 @@ def test_realtime_model_gemini_38_configuration():
         api_key="mock_test_key_for_unit_tests",
         modalities=[types.Modality.AUDIO],
         instructions="System prompt instructions",
+        thinking_config=settings.resolve_thinking_config(),
         input_audio_transcription=types.AudioTranscriptionConfig(
             language_codes=["en-US"],
             custom_vocabulary=settings.dental_custom_vocabulary,
@@ -74,18 +75,39 @@ def test_realtime_model_gemini_38_configuration():
     # 1. Verify instructions are wired directly into RealtimeModel
     assert llm._opts.instructions == "System prompt instructions"
 
-    # 2. Verify VAD silence detection is tuned to 600ms
+    # 2. Verify thinking_config is set for extended-thinking model with LOW level
+    if "extended-thinking" in settings.gemini_model:
+        assert llm._opts.thinking_config is not None
+        assert llm._opts.thinking_config.thinking_level == types.ThinkingLevel.LOW
+
+    # 3. Verify VAD silence detection is tuned to 600ms
     assert (
         llm._opts.realtime_input_config.automatic_activity_detection.silence_duration_ms
         == 600
     )
 
-    # 3. Verify dental custom vocabulary is passed to input audio transcription
+    # 4. Verify dental custom vocabulary is passed to input audio transcription
     assert (
         llm._opts.input_audio_transcription.custom_vocabulary
         == settings.dental_custom_vocabulary
     )
 
-    # 4. Verify legacy enable_affective_dialog is NOT given (enabled by default in 3.8 Live)
+    # 5. Verify legacy enable_affective_dialog is NOT given (enabled by default in 3.8 Live)
     from livekit.agents.types import NOT_GIVEN
     assert llm._opts.enable_affective_dialog is NOT_GIVEN
+
+
+def test_resolve_thinking_config_switching():
+    """Verify resolve_thinking_config dynamically provides ThinkingConfig or NOT_GIVEN."""
+    from livekit.agents.types import NOT_GIVEN
+
+    # Extended thinking model requires thinking_config with thinking_level
+    tc = settings.resolve_thinking_config()
+    if "extended-thinking" in settings.gemini_model:
+        assert tc != NOT_GIVEN
+        assert tc.thinking_level == types.ThinkingLevel.LOW
+
+    # Custom thinking level
+    custom_tc = settings.resolve_thinking_config(thinking_level="MINIMAL")
+    if "extended-thinking" in settings.gemini_model:
+        assert custom_tc.thinking_level == types.ThinkingLevel.MINIMAL

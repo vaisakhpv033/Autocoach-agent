@@ -19,7 +19,4 @@ __all__ = [
     "ALL_PREBUILT_VOICES",
     "build_system_prompt",
     "CustomerPersona",
-    "server",
-    "entrypoint",
-    "main",
 ]

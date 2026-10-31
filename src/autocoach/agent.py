@@ -118,6 +118,7 @@ async def entrypoint(ctx: JobContext):
         modalities=[types.Modality.AUDIO],
         language=bcp47_language,
         instructions=system_instructions,
+        thinking_config=settings.resolve_thinking_config(meta.extra_metadata.get("thinking_level")),
         input_audio_transcription=types.AudioTranscriptionConfig(
             language_codes=asr_language_codes,
             custom_vocabulary=settings.dental_custom_vocabulary,

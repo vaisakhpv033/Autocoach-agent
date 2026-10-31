@@ -5,7 +5,7 @@ and .env files using Pydantic Settings.
 """
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -78,6 +78,7 @@ class Settings(BaseSettings):
     google_api_key: str = Field(default="", alias="GOOGLE_API_KEY")
     gemini_model: str = Field(default="gemini-3.8-live-extended-thinking", alias="GEMINI_MODEL")
     gemini_temperature: float = Field(default=0.8, alias="GEMINI_TEMPERATURE")
+    gemini_thinking_level: str = Field(default="LOW", alias="GEMINI_THINKING_LEVEL")
 
     # Speech Dynamics & VAD Tuning (Gemini 3.8 Live & LiveKit 1.8+)
     silence_duration_ms: int = Field(default=600, alias="SILENCE_DURATION_MS")
@@ -148,6 +149,18 @@ class Settings(BaseSettings):
 
         bcp47 = self.resolve_bcp47_language(language_code)
         return [bcp47]
+
+    def resolve_thinking_config(self, thinking_level: Optional[str] = None) -> Any:
+        """Resolves thinking_config for models supporting or requiring it (e.g. gemini-3.8-live-extended-thinking).
+        Returns NOT_GIVEN for standard models that do not accept thinking_level."""
+        from livekit.agents.types import NOT_GIVEN
+        from google.genai import types
+
+        if "extended-thinking" in self.gemini_model.lower():
+            level_str = (thinking_level or self.gemini_thinking_level or "LOW").upper()
+            level = getattr(types.ThinkingLevel, level_str, types.ThinkingLevel.LOW)
+            return types.ThinkingConfig(thinking_level=level)
+        return NOT_GIVEN
 
 
 # Global singleton settings instance
