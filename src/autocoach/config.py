@@ -114,6 +114,21 @@ class Settings(BaseSettings):
         base_code = clean.split("-")[0].split("_")[0]
         return LANGUAGE_BCP47_MAP.get(base_code, "en-US")
 
+    def resolve_asr_language_codes(
+        self, language_code: Optional[str], code_mixing: bool = False
+    ) -> list[str]:
+        """Resolves target ASR language codes to lock speech-to-text recognition
+        to the expected language(s), preventing interim language-jumping hallucinations."""
+        if code_mixing:
+            return ["en-US", "es-US"]
+
+        clean = (language_code or self.default_language).strip().lower()
+        if clean in ["spanglish", "code-mix", "code_mix", "code-mixed", "es-en", "en-es"]:
+            return ["en-US", "es-US"]
+
+        bcp47 = self.resolve_bcp47_language(language_code)
+        return [bcp47]
+
 
 # Global singleton settings instance
 settings = Settings()

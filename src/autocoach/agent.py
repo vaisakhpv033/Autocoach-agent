@@ -73,8 +73,12 @@ async def entrypoint(ctx: JobContext):
     )
     meta.voice = selected_voice  # record resolved voice in metadata for reporting
 
-    # 3. Resolve BCP-47 Language Tag
+    # 3. Resolve BCP-47 Language Tag & ASR Locked Language Codes
     bcp47_language = settings.resolve_bcp47_language(meta.language)
+    asr_language_codes = settings.resolve_asr_language_codes(
+        language_code=meta.language,
+        code_mixing=meta.code_mixing,
+    )
 
     # 4. Compile 5-Layer System Prompt
     system_instructions = build_system_prompt(meta)
@@ -82,7 +86,7 @@ async def entrypoint(ctx: JobContext):
     logger.info(
         f"Starting Gemini 3.8 Live session: room='{ctx.room.name}', "
         f"scenario='{meta.scenario}', voice='{selected_voice}', "
-        f"language='{bcp47_language}', difficulty='{meta.difficulty}'"
+        f"language='{bcp47_language}', asr_languages={asr_language_codes}, difficulty='{meta.difficulty}'"
     )
 
     # 5. Build Tools (EndCallTool for call termination)
@@ -108,8 +112,12 @@ async def entrypoint(ctx: JobContext):
         api_key=gemini_api_key,
         modalities=[types.Modality.AUDIO],
         language=bcp47_language,
-        input_audio_transcription=types.AudioTranscriptionConfig(),
-        output_audio_transcription=types.AudioTranscriptionConfig(),
+        input_audio_transcription=types.AudioTranscriptionConfig(
+            language_codes=asr_language_codes,
+        ),
+        output_audio_transcription=types.AudioTranscriptionConfig(
+            language_codes=asr_language_codes,
+        ),
         realtime_input_config=types.RealtimeInputConfig(
             automatic_activity_detection=types.AutomaticActivityDetection(
                 disabled=False,
