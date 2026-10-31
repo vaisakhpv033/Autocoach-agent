@@ -58,7 +58,7 @@ def test_realtime_model_gemini_38_configuration():
         temperature=settings.gemini_temperature,
         api_key="mock_test_key_for_unit_tests",
         modalities=[types.Modality.AUDIO],
-        context_window_compression=types.ContextWindowCompressionConfig(),
+        instructions="System prompt instructions",
         input_audio_transcription=types.AudioTranscriptionConfig(
             language_codes=["en-US"],
             custom_vocabulary=settings.dental_custom_vocabulary,
@@ -71,8 +71,8 @@ def test_realtime_model_gemini_38_configuration():
         ),
     )
 
-    # 1. Verify context compression is configured
-    assert llm._opts.context_window_compression is not None
+    # 1. Verify instructions are wired directly into RealtimeModel
+    assert llm._opts.instructions == "System prompt instructions"
 
     # 2. Verify VAD silence detection is tuned to 600ms
     assert (

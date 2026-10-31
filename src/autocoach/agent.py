@@ -60,6 +60,10 @@ async def entrypoint(ctx: JobContext):
     logger.info(f"Connecting to room '{ctx.room.name}' (job: {ctx.job.id if ctx.job else 'N/A'})...")
     await ctx.connect()
 
+    # Wait for client participant to join the room before proceeding (prevents metadata extraction race)
+    participant = await ctx.wait_for_participant()
+    logger.info(f"Participant joined room '{ctx.room.name}': identity='{participant.identity}'")
+
     # 1. Resolve cascading metadata from participant, room, job, and defaults
     meta = extract_session_metadata(ctx)
     if ctx.job and ctx.job.id:
@@ -113,7 +117,7 @@ async def entrypoint(ctx: JobContext):
         api_key=gemini_api_key,
         modalities=[types.Modality.AUDIO],
         language=bcp47_language,
-        context_window_compression=types.ContextWindowCompressionConfig(),
+        instructions=system_instructions,
         input_audio_transcription=types.AudioTranscriptionConfig(
             language_codes=asr_language_codes,
             custom_vocabulary=settings.dental_custom_vocabulary,
@@ -141,6 +145,7 @@ async def entrypoint(ctx: JobContext):
 
     session = AgentSession(
         llm=llm,
+        tools=simulation_tools,
         turn_handling=turn_handling,
     )
 
