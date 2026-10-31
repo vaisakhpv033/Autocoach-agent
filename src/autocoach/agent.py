@@ -107,7 +107,7 @@ async def entrypoint(ctx: JobContext):
     gemini_api_key = settings.google_api_key or os.getenv("GOOGLE_API_KEY", "")
     if not gemini_api_key:
         logger.warning(
-            "GOOGLE_API_KEY is not set! The Gemini 3.8 Live connection will fail unless authenticated via Vertex AI."
+            f"GOOGLE_API_KEY is not set! The {settings.gemini_model} Live connection will fail unless authenticated via Vertex AI."
         )
 
     llm = google.realtime.RealtimeModel(
