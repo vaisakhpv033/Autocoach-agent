@@ -8,7 +8,6 @@ from autocoach.metadata import SessionMetadata, extract_session_metadata
 from autocoach.voices import resolve_voice, ALL_PREBUILT_VOICES
 from autocoach.prompt_engine import build_system_prompt
 from autocoach.personas.base import CustomerPersona
-from autocoach.agent import server, entrypoint, main
 
 __version__ = "0.1.0"
 
