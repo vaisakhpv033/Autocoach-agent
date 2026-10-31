@@ -109,6 +109,7 @@ class Settings(BaseSettings):
     autocoach_reports_url: Optional[str] = Field(default=None, alias="AUTOCOACH_REPORTS_URL")
     reports_api_url: Optional[str] = Field(default=None, alias="REPORTS_API_URL")
     reports_timeout_seconds: float = Field(default=10.0, alias="AUTOCOACH_REPORTS_TIMEOUT_SECONDS")
+    allow_local_webhooks: bool = Field(default=False, alias="ALLOW_LOCAL_WEBHOOKS")
 
     # Default Scenario & Simulation Presets (used when no metadata is provided)
     default_scenario: str = Field(default="default", alias="DEFAULT_SCENARIO")
