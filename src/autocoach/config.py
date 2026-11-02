@@ -77,7 +77,7 @@ class Settings(BaseSettings):
     # Google Gemini 3.8 Live API
     google_api_key: str = Field(default="", alias="GOOGLE_API_KEY")
     gemini_model: str = Field(default="gemini-3.8-live-extended-thinking", alias="GEMINI_MODEL")
-    gemini_temperature: float = Field(default=0.8, alias="GEMINI_TEMPERATURE")
+    gemini_temperature: float = Field(default=0.6, alias="GEMINI_TEMPERATURE")
     gemini_thinking_level: str = Field(default="LOW", alias="GEMINI_THINKING_LEVEL")
 
     # Speech Dynamics & VAD Tuning (Gemini 3.8 Live & LiveKit 1.8+)
