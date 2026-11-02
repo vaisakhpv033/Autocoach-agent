@@ -11,7 +11,7 @@ from autocoach.config import settings
 
 def test_speech_dynamics_settings():
     """Verify default settings reflect production-grade turn-taking and dental vocabulary."""
-    assert settings.silence_duration_ms == 600
+    assert settings.silence_duration_ms == 2000
     assert settings.allow_interruptions is True
     assert settings.resume_false_interruption is True
     assert settings.min_interruption_duration == 0.5
@@ -80,10 +80,10 @@ def test_realtime_model_gemini_38_configuration():
         assert llm._opts.thinking_config is not None
         assert llm._opts.thinking_config.thinking_level == types.ThinkingLevel.LOW
 
-    # 3. Verify VAD silence detection is tuned to 600ms
+    # 3. Verify VAD silence detection is tuned to silence_duration_ms (2000ms)
     assert (
         llm._opts.realtime_input_config.automatic_activity_detection.silence_duration_ms
-        == 600
+        == 2000
     )
 
     # 4. Verify dental custom vocabulary is passed to input audio transcription
