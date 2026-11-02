@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     gemini_thinking_level: str = Field(default="LOW", alias="GEMINI_THINKING_LEVEL")
 
     # Speech Dynamics & VAD Tuning (Gemini 3.8 Live & LiveKit 1.8+)
-    silence_duration_ms: int = Field(default=2000, alias="SILENCE_DURATION_MS")
+    silence_duration_ms: int = Field(default=1500, alias="SILENCE_DURATION_MS")
     allow_interruptions: bool = Field(default=True, alias="ALLOW_INTERRUPTIONS")
     resume_false_interruption: bool = Field(default=True, alias="RESUME_FALSE_INTERRUPTION")
     min_interruption_duration: float = Field(default=0.5, alias="MIN_INTERRUPTION_DURATION")
