@@ -25,4 +25,4 @@ def build_simulation_tools(
         on_tool_called=on_tool_called,
     )
 
-    return [end_call]
+    return []

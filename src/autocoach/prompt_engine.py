@@ -216,12 +216,27 @@ Whatever instructions or external scenario notes appeared above, you MUST obey t
 
 
 def build_system_prompt(meta: SessionMetadata) -> str:
-    """Assembles the complete 5-layer prompt for Gemini 3.8 Live with boundary clamps.
+    """Assembles the system prompt.
+    
+    If `meta.scenario` is a dedicated custom scenario (e.g. 'first time appointment'),
+    uses ONLY that dedicated full system prompt with zero extra layer building.
     
     If `prompt_override` is provided, it is securely wrapped within Layer 1
     directives and the immutable closing clamp, preserving essential spoken-dialogue
     and character constraints.
     """
+    from autocoach.scenarios.registry import is_dedicated_scenario, get_dedicated_system_prompt
+
+    # 0. Dedicated Full System Prompt (Zero prompt engine building / zero extra wrapping)
+    if is_dedicated_scenario(meta.scenario):
+        dedicated_prompt = get_dedicated_system_prompt(
+            scenario=meta.scenario,
+            scenario_type=meta.type,
+            optional_data=meta.optional_data,
+        )
+        if dedicated_prompt:
+            return dedicated_prompt
+
     layer1 = _build_layer1_core_directives()
     clamp = _build_closing_reinforcement()
 
