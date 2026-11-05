@@ -43,6 +43,13 @@ class SessionMetadata(BaseModel):
     compliance_traps: list[str] = Field(default_factory=list)
     evaluation_rubric: Optional[Any] = None
 
+    # Dental-Patient-Custom scenario overrides
+    instructions: Optional[str] = None
+    model: Optional[str] = None
+    temperature: Optional[float] = None
+    thinking_level: Optional[str] = None
+    vad_sensitivity_ms: Optional[int] = None
+
     # AutoCoach Trainee & LMS Tracking
     trainee_id: Optional[str] = None
     trainee_name: Optional[str] = None
