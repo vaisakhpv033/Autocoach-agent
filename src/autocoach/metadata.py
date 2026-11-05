@@ -109,7 +109,7 @@ def _normalize_metadata_dict(merged_data: dict[str, Any]) -> SessionMetadata:
             elif "name" in opt:
                 merged_data["persona_name"] = opt["name"]
 
-    # Check dedicated scenario defaults (e.g. gender="male", persona_name="Raul Laredo")
+    # Check dedicated scenario defaults (e.g. gender="male", persona_name="Marcus Turner")
     from autocoach.scenarios.registry import get_scenario_metadata_defaults
     scenario_defaults = get_scenario_metadata_defaults(
         scenario=merged_data.get("scenario"),

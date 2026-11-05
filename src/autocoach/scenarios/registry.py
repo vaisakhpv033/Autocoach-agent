@@ -44,7 +44,7 @@ def get_scenario_metadata_defaults(
 ) -> dict[str, Any]:
     """Returns scenario-specific metadata defaults (e.g. caller gender, name).
 
-    For personal first-time appointments (Raul Laredo), gender defaults to 'male'
+    For personal first-time appointments (Marcus Turner), gender defaults to 'male'
     so that any Gemini Live male voice is selected.
     """
     norm_scenario = normalize_scenario_name(scenario)
@@ -54,7 +54,7 @@ def get_scenario_metadata_defaults(
         if norm_type in ["", "personal", "self", "individual"]:
             return {
                 "gender": "male",
-                "persona_name": "Raul Laredo",
+                "persona_name": "Marcus Turner",
             }
         elif norm_type in ["family", "children"]:
             return {

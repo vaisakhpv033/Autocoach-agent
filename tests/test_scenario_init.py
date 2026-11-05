@@ -24,17 +24,17 @@ def test_init_with_first_time_appointment_default():
     assert meta.scenario == "first time appointment"
     assert meta.type == ""
     assert meta.optional_data == {}
-    # Default gender must be male for Raul Laredo
+    # Default gender must be male for Marcus Turner
     assert meta.gender == "male"
-    assert meta.persona_name == "Raul Laredo"
+    assert meta.persona_name == "Marcus Turner"
 
     prompt = build_system_prompt(meta)
 
     # Must be the dedicated prompt
     assert prompt == FIRST_TIME_APPOINTMENT_SELF_SYSTEM_PROMPT.strip()
-    assert "Raul Laredo" in prompt
+    assert "Marcus Turner" in prompt
     assert "Blue Cross Blue Shield" in prompt
-    assert "ZKR605436482" in prompt
+    assert "WKD804192651" in prompt
 
     # Must NOT contain prompt engine 5-layer components or generic persona
     assert "Citrus Smiles" not in prompt
