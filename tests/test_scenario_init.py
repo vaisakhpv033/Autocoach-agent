@@ -118,8 +118,8 @@ def test_init_with_personal_type_and_optional_data():
     assert "4:30 PM" in prompt
 
     # Preserves patient epistemic boundaries
-    assert "WHAT YOU DO NOT KNOW (STRICT CLINIC BOUNDARIES)" in prompt
-    assert "CONVERSATIONAL WORKFLOW & BEHAVIORAL STAGES" in prompt
+    assert "What you do NOT know" in prompt
+    assert "Conversational Workflow" in prompt
 
 
 def test_extract_session_metadata_from_job_context():

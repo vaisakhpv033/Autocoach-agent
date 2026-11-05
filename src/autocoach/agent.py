@@ -117,7 +117,9 @@ async def entrypoint(ctx: JobContext):
         api_key=gemini_api_key,
         modalities=[types.Modality.AUDIO],
         language=bcp47_language,
-        instructions=system_instructions,
+        # NOTE: System instructions are set ONLY on the Agent (not here) to avoid
+        # duplicate instructions which dilute persona adherence via "lost in the middle" effect.
+        # See: https://aistudio.google.com/docs/live-api/best-practices#system-instruction-guidelines
         thinking_config=settings.resolve_thinking_config(meta.extra_metadata.get("thinking_level")),
         input_audio_transcription=types.AudioTranscriptionConfig(
             language_codes=asr_language_codes,
@@ -131,6 +133,15 @@ async def entrypoint(ctx: JobContext):
                 disabled=False,
                 silence_duration_ms=settings.silence_duration_ms,
             )
+        ),
+        # Context window compression: audio tokens accumulate at ~25 tokens/sec.
+        # Without compression, audio-only sessions are limited to ~15 minutes.
+        # This enables unlimited session duration for longer training calls.
+        # See: https://aistudio.google.com/docs/live-api/best-practices#context-management
+        context_window_compression=types.ContextWindowCompressionConfig(
+            sliding_window=types.SlidingWindow(
+                target_tokens=50000,
+            ),
         ),
     )
 
