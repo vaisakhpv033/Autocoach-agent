@@ -156,3 +156,46 @@ def test_create_session_metadata_helper():
 
     prompt = build_system_prompt(meta)
     assert prompt == FIRST_TIME_APPOINTMENT_SELF_SYSTEM_PROMPT.strip()
+
+
+def test_dental_patient_custom_language_resolution():
+    """Verify dental-patient-custom properly resolves language and code-mixing."""
+    from autocoach.scenarios.dental_patient_custom import resolve_dental_patient_custom_config
+    from autocoach.config import settings
+
+    # Case 1: Spanish language at top-level
+    meta_es = resolve_session_metadata_from_dict({
+        "scenario": "dental-patient-custom",
+        "gender": "female",
+        "language": "es-US",
+        "instructions": "Eres Maria Torres...",
+    })
+    config_es = resolve_dental_patient_custom_config(meta_es)
+    assert config_es.language == "es-US"
+    assert config_es.code_mixing is False
+    assert settings.resolve_bcp47_language(config_es.language) == "es-US"
+    assert settings.resolve_asr_language_codes(config_es.language, config_es.code_mixing) == ["es-US"]
+
+    # Case 2: Spanglish / Code-mixing
+    meta_spanglish = resolve_session_metadata_from_dict({
+        "scenario": "dental-patient-custom",
+        "gender": "male",
+        "language": "spanglish",
+        "instructions": "You are a bilingual patient...",
+    })
+    config_spanglish = resolve_dental_patient_custom_config(meta_spanglish)
+    assert config_spanglish.code_mixing is True
+    assert settings.resolve_asr_language_codes(config_spanglish.language, config_spanglish.code_mixing) == ["en-US", "es-US"]
+
+    # Case 3: Language passed inside optional_data
+    meta_opt = resolve_session_metadata_from_dict({
+        "scenario": "dental-patient-custom",
+        "gender": "female",
+        "optional_data": {
+            "instructions": "Custom prompt...",
+            "language": "hi",
+        },
+    })
+    config_opt = resolve_dental_patient_custom_config(meta_opt)
+    assert config_opt.language == "hi"
+    assert settings.resolve_bcp47_language(config_opt.language) == "hi-IN"

@@ -43,6 +43,8 @@ class DentalPatientCustomConfig(BaseModel):
     temperature: float = Field(default_factory=lambda: settings.gemini_temperature)
     thinking_level: str = "high"
     vad_sensitivity_ms: int = Field(default_factory=lambda: settings.silence_duration_ms)
+    language: str = Field(default_factory=lambda: settings.default_language)
+    code_mixing: bool = False
 
     @field_validator("instructions")
     @classmethod
@@ -144,6 +146,22 @@ def resolve_dental_patient_custom_config(
     vad_ms = meta.vad_sensitivity_ms if meta.vad_sensitivity_ms is not None else opt.get("vad_sensitivity_ms")
     vad_source = "meta.vad_sensitivity_ms" if meta.vad_sensitivity_ms is not None else ("optional_data" if "vad_sensitivity_ms" in opt else "DEFAULT")
 
+    # --- Language & Code-Mixing ---
+    raw_lang = meta.language or opt.get("language") or settings.default_language
+    code_mixing = meta.code_mixing or bool(opt.get("code_mixing", False))
+    # Detect code-mixing aliases
+    if str(raw_lang).strip().lower() in ["spanglish", "code-mix", "code_mix", "code-mixed", "es-en", "en-es"]:
+        code_mixing = True
+        language = "es-US"
+    else:
+        language = str(raw_lang)
+
+    language_source = (
+        "meta.language"
+        if meta.language and meta.language != settings.default_language
+        else ("optional_data" if "language" in opt else "DEFAULT")
+    )
+
     # --- Thinking Level (model-aware defaults) ---
     raw_thinking = meta.thinking_level or opt.get("thinking_level")
     if raw_thinking:
@@ -165,7 +183,8 @@ def resolve_dental_patient_custom_config(
         f"  model        : [{model_source}] {model}\n"
         f"  temperature  : [{temperature_source}] {temperature if temperature is not None else f'DEFAULT ({settings.gemini_temperature})'}\n"
         f"  thinking_lvl : [{thinking_source}] {thinking_level}\n"
-        f"  vad_ms       : [{vad_source}] {vad_ms if vad_ms is not None else f'DEFAULT ({settings.silence_duration_ms})'}"
+        f"  vad_ms       : [{vad_source}] {vad_ms if vad_ms is not None else f'DEFAULT ({settings.silence_duration_ms})'}\n"
+        f"  language     : [{language_source}] {language} (code_mixing={code_mixing})"
     )
 
     config_data: dict = {
@@ -173,6 +192,8 @@ def resolve_dental_patient_custom_config(
         "gender": gender,
         "model": model,
         "thinking_level": thinking_level,
+        "language": language,
+        "code_mixing": code_mixing,
     }
     if temperature is not None:
         config_data["temperature"] = temperature
@@ -185,6 +206,7 @@ def resolve_dental_patient_custom_config(
     logger.info(
         f"[dental-patient-custom] Validated config: "
         f"model='{config.model}', gender='{config.gender}', "
+        f"language='{config.language}', code_mixing={config.code_mixing}, "
         f"temperature={config.temperature}, thinking_level='{config.thinking_level}', "
         f"vad_sensitivity_ms={config.vad_sensitivity_ms}, instructions_len={len(config.instructions)}"
     )

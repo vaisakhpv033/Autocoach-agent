@@ -93,11 +93,13 @@ async def _handle_dental_patient_custom(ctx: JobContext, meta: SessionMetadata) 
     meta.voice = selected_voice
 
     # 2. Resolve language (uses standard flow)
-    bcp47_language = settings.resolve_bcp47_language(meta.language)
+    bcp47_language = settings.resolve_bcp47_language(config.language)
     asr_language_codes = settings.resolve_asr_language_codes(
-        language_code=meta.language,
-        code_mixing=meta.code_mixing,
+        language_code=config.language,
+        code_mixing=config.code_mixing,
     )
+    meta.language = config.language
+    meta.code_mixing = config.code_mixing
 
     # 3. Resolve thinking config (only for thinking-capable models)
     thinking_config = _resolve_custom_thinking_config(

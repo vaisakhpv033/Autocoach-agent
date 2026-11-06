@@ -103,6 +103,8 @@ def _normalize_metadata_dict(merged_data: dict[str, Any]) -> SessionMetadata:
             merged_data["voice"] = opt["voice"]
         if "gender" in opt and ("gender" not in merged_data or not merged_data["gender"]):
             merged_data["gender"] = opt["gender"]
+        if "language" in opt and ("language" not in merged_data or not merged_data["language"]):
+            merged_data["language"] = opt["language"]
         if "persona_name" not in merged_data:
             if "caller_name" in opt:
                 merged_data["persona_name"] = opt["caller_name"]
